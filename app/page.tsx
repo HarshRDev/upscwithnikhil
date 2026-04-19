@@ -1,14 +1,17 @@
 import HomePage from "./components/HomePage";
+import { getAppBaseUrl } from "./lib/appBaseUrl";
 
 async function getArticles() {
-  const res = await fetch("http://localhost:3000/api/articles", {
+  const base = await getAppBaseUrl();
+  const res = await fetch(`${base}/api/articles`, {
     cache: "no-store",
   });
   return res.json();
 }
 
 async function getCourses() {
-  const res = await fetch("http://localhost:3000/api/courses", {
+  const base = await getAppBaseUrl();
+  const res = await fetch(`${base}/api/courses`, {
     cache: "no-store",
   });
   return res.json();

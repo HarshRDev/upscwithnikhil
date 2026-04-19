@@ -5,12 +5,12 @@ import {
 } from "../../lib/supabaseServiceAdmin";
 
 /* =========================
-   GET → Fetch all courses
+   GET → Fetch all test series
 ========================= */
 export async function GET() {
   try {
     const { data, error } = await supabase
-      .from("courses")
+      .from("test_series")
       .select("*")
       .eq("is_published", true)
       .order("created_at", { ascending: false });
@@ -32,7 +32,7 @@ export async function GET() {
 }
 
 /* =========================
-   POST → Create new course
+   POST → Create new test series
 ========================= */
 export async function POST(req: Request) {
   try {
@@ -41,10 +41,10 @@ export async function POST(req: Request) {
 
     const body = await req.json();
 
-    const { title, description, price, is_published } = body;
+    const { title, description, price, total_tests, duration } = body;
 
     // basic validation
-    if (!title || !description || !price) {
+    if (!title || !description || !price || !total_tests) {
       return Response.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -52,13 +52,15 @@ export async function POST(req: Request) {
     }
 
     const { data, error } = await db
-      .from("courses")
+      .from("test_series")
       .insert([
         {
           title,
           description,
           price,
-          is_published: is_published ?? true,
+          total_tests,
+          duration: duration || null,
+          is_published: true,
         },
       ])
       .select();

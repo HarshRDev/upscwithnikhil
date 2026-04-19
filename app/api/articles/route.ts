@@ -1,4 +1,8 @@
 import { supabase } from "../../lib/supabaseClient";
+import {
+  adminWriteUnauthorizedResponse,
+  supabaseForAdminWrite,
+} from "../../lib/supabaseServiceAdmin";
 
 // GET → fetch articles
 export async function GET() {
@@ -17,11 +21,14 @@ export async function GET() {
 
 // POST → create article
 export async function POST(req: Request) {
+  const db = supabaseForAdminWrite(req);
+  if (!db) return adminWriteUnauthorizedResponse();
+
   const body = await req.json();
 
   const { title, content } = body;
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from("articles")
     .insert([
       {

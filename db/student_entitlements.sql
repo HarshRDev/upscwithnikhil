@@ -1,0 +1,12 @@
+-- =============================================================================
+-- DEPRECATED for this project schema
+-- =============================================================================
+-- Your database uses `purchases` (user_id + course_id) for course access.
+-- After running db/platform_extensions.sql, you can also store test series
+-- purchases using purchases.test_series_id.
+--
+-- Use: db/platform_extensions.sql
+--
+-- If you already created student_entitlements earlier, you can keep it or drop
+-- it; the Next.js app reads access from `purchases`, not this table.
+-- =============================================================================

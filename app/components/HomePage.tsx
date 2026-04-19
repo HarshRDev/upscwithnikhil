@@ -1,13 +1,28 @@
 import Footer from "./Footer";
 import Navbar from "./Navbar";
+import ArticlesSection from "./ArticlesSection";
 import CoursesSection from "./CoursesSection";
+
+type Article = {
+  id: string;
+  title: string;
+  content: string | null;
+  created_at?: string;
+};
+
+type Course = {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+};
 
 export default function HomePage({
   articles,
   courses,
 }: {
-  articles: any[];
-  courses: any[];
+  articles: Article[];
+  courses: Course[];
 }) {
   return (
     <main className="bg-[#F5EBDD] min-h-screen">
@@ -25,19 +40,7 @@ export default function HomePage({
         </h1>
       </section>
 
-      {/* ARTICLES */}
-      <section className="mt-20 max-w-5xl mx-auto px-6">
-        <h2 className="text-2xl font-bold mb-6">Latest Articles</h2>
-
-        <div className="space-y-4">
-          {articles.map((article: any) => (
-            <div key={article.id} className="p-5 bg-white rounded-xl shadow">
-              <h3 className="text-lg font-semibold">{article.title}</h3>
-              <p className="text-gray-600 mt-2">{article.content}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      <ArticlesSection articles={articles} />
 
       {/* COURSES */}
       <CoursesSection courses={courses}/>
