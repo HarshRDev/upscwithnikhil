@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import Logo from "./Logo";
@@ -9,6 +10,7 @@ import { supabase } from "../lib/supabaseClient";
 
 export default function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -54,9 +56,23 @@ export default function Navbar() {
             <>
               <Link
                 href="/dashboard"
-                className="text-sm text-gray-700 hover:text-black transition"
+                className={`text-sm transition ${
+                  pathname === "/dashboard"
+                    ? "text-pink-600 font-semibold"
+                    : "text-gray-700 hover:text-black"
+                }`}
               >
                 Dashboard
+              </Link>
+              <Link
+                href="/profile"
+                className={`text-sm transition ${
+                  pathname === "/profile"
+                    ? "text-pink-600 font-semibold"
+                    : "text-gray-700 hover:text-black"
+                }`}
+              >
+                Profile
               </Link>
               <button
                 type="button"

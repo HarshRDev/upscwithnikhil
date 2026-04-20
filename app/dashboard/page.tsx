@@ -182,11 +182,18 @@ export default function StudentDashboard() {
                 My courses
               </h2>
               {myCourses.length === 0 ? (
-                <p className="text-sm text-gray-600">
-                  No course access yet. Add a row in{" "}
-                  <code className="text-xs">purchases</code> for your user with a
-                  paid status.
-                </p>
+                <>
+                  <p className="text-sm text-gray-600">
+                    You do not have any active course enrollments at the moment.
+                    Once a course purchase is confirmed, it will appear here.
+                  </p>
+                  <Link
+                    href="/courses"
+                    className="inline-block mt-4 text-sm text-pink-600 hover:underline"
+                  >
+                    Browse all published courses
+                  </Link>
+                </>
               ) : (
                 <ul className="space-y-3">
                   {myCourses.map((c) => (
@@ -209,7 +216,9 @@ export default function StudentDashboard() {
               </h2>
               {myTests.length === 0 ? (
                 <p className="text-sm text-gray-600">
-                  No test series assigned yet.
+                  You do not have any active test series enrollments at the
+                  moment. Once a test series purchase is confirmed, it will
+                  appear here.
                 </p>
               ) : (
                 <ul className="space-y-3">
