@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 
 async function jsonAuthHeaders(): Promise<Record<string, string>> {
@@ -17,11 +18,44 @@ async function jsonAuthHeaders(): Promise<Record<string, string>> {
 type Tab = "articles" | "courses" | "testseries" | "mcqs" | "students";
 
 export default function AdminPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("articles");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [students, setStudents] = useState<any[]>([]);
   const [uploadMode, setUploadMode] = useState<"json" | "word">("json");
+  const [authChecking, setAuthChecking] = useState(true);
+
+  useEffect(() => {
+    const guardAdminRoute = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          router.replace("/auth/login?next=/admin");
+          return;
+        }
+
+        const profileRes = await fetch("/api/profile", {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        const profile = await profileRes.json();
+        const role = String(profile?.role ?? "")
+          .trim()
+          .toLowerCase();
+
+        if (!profileRes.ok || (role !== "admin" && role !== "superadmin")) {
+          router.replace("/not-authorized");
+          return;
+        }
+      } finally {
+        setAuthChecking(false);
+      }
+    };
+
+    guardAdminRoute();
+  }, [router]);
 
   // Article Form State
   const [articleData, setArticleData] = useState({
@@ -145,11 +179,15 @@ export default function AdminPage() {
   const fetchStudents = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/students");
+      const res = await fetch("/api/admin/students", {
+        headers: await jsonAuthHeaders(),
+      });
       const data = await res.json();
 
-      if (Array.isArray(data)) {
+      if (res.ok && Array.isArray(data)) {
         setStudents(data);
+      } else if (!res.ok) {
+        showMessage(`❌ ${data?.error || "Failed to fetch students"}`);
       }
     } catch (error) {
       showMessage("❌ Failed to fetch students");
@@ -284,6 +322,14 @@ export default function AdminPage() {
       setLoading(false);
     }
   };
+
+  if (authChecking) {
+    return (
+      <main className="min-h-screen bg-[#F5EBDD] flex items-center justify-center">
+        <p className="text-[#0F172A] text-lg">Checking admin access...</p>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#F5EBDD] py-12 px-6">

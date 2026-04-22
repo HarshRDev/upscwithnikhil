@@ -3,6 +3,10 @@ import {
   adminWriteUnauthorizedResponse,
   supabaseForAdminWrite,
 } from "../../lib/supabaseServiceAdmin";
+import {
+  adminAccessErrorResponse,
+  requireAdminUser,
+} from "../../lib/adminAuth";
 
 /* =========================
    GET → Fetch all MCQs
@@ -50,6 +54,7 @@ type McqInput = {
 
 export async function POST(req: Request) {
   try {
+    await requireAdminUser(req);
     const db = supabaseForAdminWrite(req);
     if (!db) return adminWriteUnauthorizedResponse();
 
@@ -117,6 +122,9 @@ export async function POST(req: Request) {
       data,
     });
   } catch (err) {
+    if (err instanceof Error && (err.message === "Unauthorized" || err.message === "Forbidden" || err.message.startsWith("Server config missing"))) {
+      return adminAccessErrorResponse(err);
+    }
     return Response.json(
       { error: "Invalid request" },
       { status: 400 }

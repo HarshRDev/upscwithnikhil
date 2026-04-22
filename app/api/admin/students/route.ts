@@ -1,5 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 import { supabase } from "../../../lib/supabaseClient";
+import {
+  adminAccessErrorResponse,
+  requireAdminUser,
+} from "../../../lib/adminAuth";
 
 type ListedStudent = {
   id: string;
@@ -14,6 +18,7 @@ type ListedStudent = {
 ========================= */
 export async function GET(req: Request) {
   try {
+    await requireAdminUser(req);
     const { searchParams } = new URL(req.url);
     const studentId = searchParams.get("id");
 
@@ -74,10 +79,7 @@ export async function GET(req: Request) {
     }));
 
     return Response.json(fallback);
-  } catch {
-    return Response.json(
-      { error: "Something went wrong" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return adminAccessErrorResponse(error);
   }
 }

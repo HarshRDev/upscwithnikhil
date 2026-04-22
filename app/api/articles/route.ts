@@ -3,6 +3,10 @@ import {
   adminWriteUnauthorizedResponse,
   supabaseForAdminWrite,
 } from "../../lib/supabaseServiceAdmin";
+import {
+  adminAccessErrorResponse,
+  requireAdminUser,
+} from "../../lib/adminAuth";
 
 // GET → fetch articles
 export async function GET() {
@@ -21,6 +25,12 @@ export async function GET() {
 
 // POST → create article
 export async function POST(req: Request) {
+  try {
+    await requireAdminUser(req);
+  } catch (error) {
+    return adminAccessErrorResponse(error);
+  }
+
   const db = supabaseForAdminWrite(req);
   if (!db) return adminWriteUnauthorizedResponse();
 

@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { supabase } from "../../../lib/supabaseClient";
 
 interface StudentStats {
   total: number;
@@ -38,8 +39,32 @@ export default function StudentProfilePage() {
     const fetchData = async () => {
       try {
         setAdminError(null);
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          router.replace("/auth/login?next=/admin");
+          return;
+        }
+
+        const authHeaders = {
+          Authorization: `Bearer ${session.access_token}`,
+        };
+
+        const profileRes = await fetch("/api/profile", { headers: authHeaders });
+        const profile = await profileRes.json();
+        const role = String(profile?.role ?? "")
+          .trim()
+          .toLowerCase();
+        if (!profileRes.ok || (role !== "admin" && role !== "superadmin")) {
+          router.replace("/not-authorized");
+          return;
+        }
+
         // Fetch student info
-        const studentRes = await fetch(`/api/admin/students?id=${studentId}`);
+        const studentRes = await fetch(`/api/admin/students?id=${studentId}`, {
+          headers: authHeaders,
+        });
         const studentData = await studentRes.json();
 
         if (Array.isArray(studentData) && studentData.length > 0) {
@@ -48,7 +73,8 @@ export default function StudentProfilePage() {
 
         // Fetch student responses
         const responsesRes = await fetch(
-          `/api/admin/student-responses?student_id=${studentId}`
+          `/api/admin/student-responses?student_id=${studentId}`,
+          { headers: authHeaders }
         );
         const responsesData = await responsesRes.json();
 
@@ -84,7 +110,7 @@ export default function StudentProfilePage() {
     if (studentId) {
       fetchData();
     }
-  }, [studentId]);
+  }, [studentId, router]);
 
   if (loading) {
     return (
