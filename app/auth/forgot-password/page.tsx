@@ -12,6 +12,7 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [cooldownLeft, setCooldownLeft] = useState(0);
+  const [isRateLimitError, setIsRateLimitError] = useState(false);
 
   useEffect(() => {
     if (cooldownLeft <= 0) return;
@@ -25,7 +26,7 @@ export default function ForgotPasswordPage() {
   const getFriendlyErrorMessage = (rawMessage: string) => {
     const normalized = rawMessage.toLowerCase();
     if (normalized.includes("rate limit")) {
-      return `Too many attempts. Please wait ${RESEND_COOLDOWN_SECONDS} seconds before trying again.`;
+      return "Too many attempts.";
     }
     return rawMessage || "Unable to send reset email. Please try again.";
   };
@@ -36,6 +37,7 @@ export default function ForgotPasswordPage() {
 
     setError("");
     setMessage("");
+    setIsRateLimitError(false);
     setLoading(true);
 
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(
@@ -46,13 +48,16 @@ export default function ForgotPasswordPage() {
 
     if (resetError) {
       setError(getFriendlyErrorMessage(resetError.message || ""));
-      if (resetError.message?.toLowerCase().includes("rate limit")) {
+      const rateLimited = resetError.message?.toLowerCase().includes("rate limit");
+      setIsRateLimitError(Boolean(rateLimited));
+      if (rateLimited) {
         setCooldownLeft(RESEND_COOLDOWN_SECONDS);
       }
       return;
     }
 
     setMessage("Password reset email sent. Please check your inbox.");
+    setIsRateLimitError(false);
     setCooldownLeft(RESEND_COOLDOWN_SECONDS);
   };
 
@@ -66,7 +71,10 @@ export default function ForgotPasswordPage() {
 
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
-            {error}
+            {error}{" "}
+            {isRateLimitError && cooldownLeft > 0
+              ? `Please wait ${cooldownLeft} seconds before trying again.`
+              : ""}
           </div>
         )}
         {message && (
