@@ -149,8 +149,10 @@ function LoginForm() {
         </div>
 
         <p className="text-center text-gray-600 text-sm mt-6">
-          <span className="text-pink-500">Forgot password?</span> Use Supabase
-          auth recovery from your project dashboard.
+          <Link href="/auth/forgot-password" className="text-pink-500 hover:underline">
+            Forgot password?
+          </Link>{" "}
+          Reset it in a few clicks.
         </p>
       </div>
     </div>
