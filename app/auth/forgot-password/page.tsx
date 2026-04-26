@@ -1,17 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../../lib/supabaseClient";
+
+const RESEND_COOLDOWN_SECONDS = 60;
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [cooldownLeft, setCooldownLeft] = useState(0);
+
+  useEffect(() => {
+    if (cooldownLeft <= 0) return;
+    const timer = setInterval(() => {
+      setCooldownLeft((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [cooldownLeft]);
+
+  const getFriendlyErrorMessage = (rawMessage: string) => {
+    const normalized = rawMessage.toLowerCase();
+    if (normalized.includes("rate limit")) {
+      return `Too many attempts. Please wait ${RESEND_COOLDOWN_SECONDS} seconds before trying again.`;
+    }
+    return rawMessage || "Unable to send reset email. Please try again.";
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (cooldownLeft > 0 || loading) return;
+
     setError("");
     setMessage("");
     setLoading(true);
@@ -23,13 +45,15 @@ export default function ForgotPasswordPage() {
     setLoading(false);
 
     if (resetError) {
-      setError(
-        resetError.message || "Unable to send reset email. Please try again."
-      );
+      setError(getFriendlyErrorMessage(resetError.message || ""));
+      if (resetError.message?.toLowerCase().includes("rate limit")) {
+        setCooldownLeft(RESEND_COOLDOWN_SECONDS);
+      }
       return;
     }
 
     setMessage("Password reset email sent. Please check your inbox.");
+    setCooldownLeft(RESEND_COOLDOWN_SECONDS);
   };
 
   return (
@@ -68,10 +92,14 @@ export default function ForgotPasswordPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || cooldownLeft > 0}
             className="w-full bg-pink-500 text-white py-2 rounded-lg font-medium hover:scale-105 transition-all duration-200 disabled:opacity-50"
           >
-            {loading ? "Sending..." : "Send Reset Link"}
+            {loading
+              ? "Sending..."
+              : cooldownLeft > 0
+              ? `Try again in ${cooldownLeft}s`
+              : "Send Reset Link"}
           </button>
         </form>
 
