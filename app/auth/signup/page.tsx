@@ -3,9 +3,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 import { supabase } from "../../lib/supabaseClient";
+import { getClientBaseUrl } from "../../lib/clientBaseUrl";
 
 export default function SignUpPage() {
   const router = useRouter();
+  const baseUrl = getClientBaseUrl();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -41,7 +43,7 @@ export default function SignUpPage() {
         data: {
           name: formData.name,
         },
-        emailRedirectTo: `${window.location.origin}/auth/login`,
+        emailRedirectTo: `${baseUrl}/auth/login`,
       },
     });
     setLoading(false);
