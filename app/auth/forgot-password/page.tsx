@@ -23,6 +23,13 @@ export default function ForgotPasswordPage() {
     return () => clearInterval(timer);
   }, [cooldownLeft]);
 
+  useEffect(() => {
+    if (!isRateLimitError || cooldownLeft > 0) return;
+    setError("");
+    setIsRateLimitError(false);
+    setMessage("You can try sending the reset link again now.");
+  }, [cooldownLeft, isRateLimitError]);
+
   const getFriendlyErrorMessage = (rawMessage: string) => {
     const normalized = rawMessage.toLowerCase();
     if (normalized.includes("rate limit")) {
